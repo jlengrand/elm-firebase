@@ -1,0 +1,20 @@
+# Distribution
+build
+
+# elm-package generated files
+elm-stuff
+
+# elm-repl generated files
+repl-temp-*
+
+# Dependency directories
+node_modules
+
+dist
+
+# Desktop Services Store on macOS
+.DS_Store
+
+.idea
+
+.env

@@ -1,0 +1,25 @@
+{
+  "name": "elm-firebase",
+  "version": "1.0.0",
+  "description": "A simple repository to show Elm integration with Firebase using ports ",
+  "main": "src/index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {
+    "firebase": "^6.3.3",
+    "firebase-app": "0.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "elm",
+    "firebase",
+    "ports",
+    "auth"
+  ],
+  "author": "Julien Lengrand-Lambert <julien@lengrand.fr>",
+  "license": "MIT"
+}
