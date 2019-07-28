@@ -41,15 +41,11 @@ app.ports.signIn.subscribe(() => {
       });
     })
     .catch(error => {
-      //TODO: Handle errors
-      // Handle Errors here.
-      var errorCode = error.code;
-      var errorMessage = error.message;
-      // The email of the user's account used.
-      var email = error.email;
-      // The firebase.auth.AuthCredential type that was used.
-      var credential = error.credential;
-      // ...
+      app.ports.signInError.send({
+        code: error.code,
+        message: error.message,
+        credential: error.credential
+      });
     });
 });
 

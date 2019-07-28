@@ -15,6 +15,9 @@ port signIn : () -> Cmd msg
 port signInInfo : (Json.Encode.Value -> msg) -> Sub msg
 
 
+port signInError : (Json.Encode.Value -> msg) -> Sub msg
+
+
 port signOut : () -> Cmd msg
 
 
@@ -22,17 +25,21 @@ port signOut : () -> Cmd msg
 ---- MODEL ----
 
 
+type alias ErrorData =
+    { code : Maybe String, message : Maybe String, credential : Maybe String }
+
+
 type alias UserData =
     { token : String, email : String }
 
 
 type alias Model =
-    { userData : Maybe UserData, error : String }
+    { userData : Maybe UserData, error : ErrorData }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { userData = Maybe.Nothing, error = "No error" }, Cmd.none )
+    ( { userData = Maybe.Nothing, error = { code = Maybe.Nothing, message = Maybe.Nothing, credential = Maybe.Nothing } }, Cmd.none )
 
 
 
@@ -43,6 +50,12 @@ type Msg
     = LogIn
     | LogOut
     | LoggedInData (Result Json.Decode.Error UserData)
+    | LoggedInError (Result Json.Decode.Error ErrorData)
+
+
+emptyError : ErrorData
+emptyError =
+    { code = Maybe.Nothing, credential = Maybe.Nothing, message = Maybe.Nothing }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -52,7 +65,7 @@ update msg model =
             ( model, signIn () )
 
         LogOut ->
-            ( { model | userData = Maybe.Nothing }, signOut () )
+            ( { model | userData = Maybe.Nothing, error = emptyError }, signOut () )
 
         LoggedInData result ->
             case result of
@@ -60,7 +73,25 @@ update msg model =
                     ( { model | userData = Just value }, Cmd.none )
 
                 Err error ->
-                    ( { model | error = Json.Decode.errorToString error }, Cmd.none )
+                    ( { model | error = messageToError <| Json.Decode.errorToString error }, Cmd.none )
+
+        LoggedInError result ->
+            case result of
+                Ok value ->
+                    ( { model | error = value }, Cmd.none )
+
+                Err error ->
+                    ( { model | error = messageToError <| Json.Decode.errorToString error }, Cmd.none )
+
+
+messageToError : String -> ErrorData
+messageToError message =
+    { code = Maybe.Nothing, credential = Maybe.Nothing, message = Just message }
+
+
+errorPrinter : ErrorData -> String
+errorPrinter errorData =
+    Maybe.withDefault "" errorData.code ++ " " ++ Maybe.withDefault "" errorData.credential ++ " " ++ Maybe.withDefault "" errorData.message
 
 
 userDataDecoder : Json.Decode.Decoder UserData
@@ -68,6 +99,14 @@ userDataDecoder =
     Json.Decode.succeed UserData
         |> Json.Decode.Pipeline.required "token" Json.Decode.string
         |> Json.Decode.Pipeline.required "email" Json.Decode.string
+
+
+logInErrorDecoder : Json.Decode.Decoder ErrorData
+logInErrorDecoder =
+    Json.Decode.succeed ErrorData
+        |> Json.Decode.Pipeline.required "code" (Json.Decode.nullable Json.Decode.string)
+        |> Json.Decode.Pipeline.required "message" (Json.Decode.nullable Json.Decode.string)
+        |> Json.Decode.Pipeline.required "credential" (Json.Decode.nullable Json.Decode.string)
 
 
 
@@ -81,7 +120,7 @@ view model =
         , h1 [] [ text "Your Elm App is working!" ]
         , button [ onClick LogIn ] [ text "Login with Google" ]
         , button [ onClick LogOut ] [ text "Logout from Google" ]
-        , h2 [] [ text model.error ]
+        , h2 [] [ text <| errorPrinter model.error ]
         , h2 []
             [ text <|
                 case model.userData of
@@ -103,6 +142,7 @@ subscriptions model =
     -- always Sub.none
     Sub.batch
         [ signInInfo (Json.Decode.decodeValue userDataDecoder >> LoggedInData)
+        , signInInfo (Json.Decode.decodeValue logInErrorDecoder >> LoggedInError)
         ]
 
 
