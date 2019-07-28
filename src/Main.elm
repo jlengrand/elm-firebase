@@ -21,6 +21,9 @@ port signIn : () -> Cmd msg
 port signInInfo : (Json.Encode.Value -> msg) -> Sub msg
 
 
+port signOut : () -> Cmd msg
+
+
 
 ---- MODEL ----
 
@@ -44,6 +47,7 @@ init =
 
 type Msg
     = LogIn
+    | LogOut
     | SendData
     | Received (Result Json.Decode.Error Int)
     | LoggedInData (Result Json.Decode.Error UserData)
@@ -57,6 +61,9 @@ update msg model =
 
         LogIn ->
             ( model, signIn () )
+
+        LogOut ->
+            ( { model | userData = Maybe.Nothing }, signOut () )
 
         Received result ->
             case result of
@@ -98,6 +105,7 @@ view model =
         , h1 [] [ text "Your Elm App is working!" ]
         , button [ onClick SendData ] [ text "Send some data" ]
         , button [ onClick LogIn ] [ text "Login with Google" ]
+        , button [ onClick LogOut ] [ text "Logout from Google" ]
         , h2 [] [ text <| String.fromInt model.counter ]
         , h2 [] [ text model.error ]
         , h2 []

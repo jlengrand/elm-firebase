@@ -39,6 +39,8 @@ setInterval(() => {
 }, 1000);
 
 app.ports.signIn.subscribe(() => {
+  console.log("LogIn called");
+
   firebase
     .auth()
     .signInWithPopup(provider)
@@ -48,7 +50,8 @@ app.ports.signIn.subscribe(() => {
         email: result.user.email
       });
     })
-    .catch(function(error) {
+    .catch(error => {
+      //TODO: Handle errors
       // Handle Errors here.
       var errorCode = error.code;
       var errorMessage = error.message;
@@ -57,6 +60,19 @@ app.ports.signIn.subscribe(() => {
       // The firebase.auth.AuthCredential type that was used.
       var credential = error.credential;
       // ...
+    });
+});
+
+app.ports.signOut.subscribe(() => {
+  console.log("LogOut called");
+  firebase
+    .auth()
+    .signOut()
+    .then(() => {
+      // Sign-out successful.
+    })
+    .catch(error => {
+      // An error happened.
     });
 });
 
