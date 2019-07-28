@@ -9,12 +9,6 @@ import Json.Decode.Pipeline
 import Json.Encode
 
 
-port sendStuff : Json.Encode.Value -> Cmd msg
-
-
-port receiveStuff : (Json.Encode.Value -> msg) -> Sub msg
-
-
 port signIn : () -> Cmd msg
 
 
@@ -33,12 +27,12 @@ type alias UserData =
 
 
 type alias Model =
-    { counter : Int, userData : Maybe UserData, error : String }
+    { userData : Maybe UserData, error : String }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { counter = 0, userData = Maybe.Nothing, error = "No error" }, Cmd.none )
+    ( { userData = Maybe.Nothing, error = "No error" }, Cmd.none )
 
 
 
@@ -48,30 +42,17 @@ init =
 type Msg
     = LogIn
     | LogOut
-    | SendData
-    | Received (Result Json.Decode.Error Int)
     | LoggedInData (Result Json.Decode.Error UserData)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        SendData ->
-            ( model, sendStuff <| Json.Encode.string "test" )
-
         LogIn ->
             ( model, signIn () )
 
         LogOut ->
             ( { model | userData = Maybe.Nothing }, signOut () )
-
-        Received result ->
-            case result of
-                Ok value ->
-                    ( { model | counter = value }, Cmd.none )
-
-                Err error ->
-                    ( { model | error = Json.Decode.errorToString error }, Cmd.none )
 
         LoggedInData result ->
             case result of
@@ -80,11 +61,6 @@ update msg model =
 
                 Err error ->
                     ( { model | error = Json.Decode.errorToString error }, Cmd.none )
-
-
-valueDecoder : Json.Decode.Decoder Int
-valueDecoder =
-    Json.Decode.field "value" Json.Decode.int
 
 
 userDataDecoder : Json.Decode.Decoder UserData
@@ -103,10 +79,8 @@ view model =
     div []
         [ img [ src "/logo.svg" ] []
         , h1 [] [ text "Your Elm App is working!" ]
-        , button [ onClick SendData ] [ text "Send some data" ]
         , button [ onClick LogIn ] [ text "Login with Google" ]
         , button [ onClick LogOut ] [ text "Logout from Google" ]
-        , h2 [] [ text <| String.fromInt model.counter ]
         , h2 [] [ text model.error ]
         , h2 []
             [ text <|
@@ -128,8 +102,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     -- always Sub.none
     Sub.batch
-        [ receiveStuff (Json.Decode.decodeValue valueDecoder >> Received)
-        , signInInfo (Json.Decode.decodeValue userDataDecoder >> LoggedInData)
+        [ signInInfo (Json.Decode.decodeValue userDataDecoder >> LoggedInData)
         ]
 
 

@@ -28,16 +28,6 @@ const app = Elm.Main.init({
   node: document.getElementById("root")
 });
 
-app.ports.sendStuff.subscribe(data => {
-  console.log(JSON.stringify(data));
-});
-
-setInterval(() => {
-  counter += 1;
-  console.log(JSON.stringify(counter));
-  app.ports.receiveStuff.send({ value: counter });
-}, 1000);
-
 app.ports.signIn.subscribe(() => {
   console.log("LogIn called");
 
