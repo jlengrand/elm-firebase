@@ -1,7 +1,7 @@
 port module Main exposing (Model, Msg(..), init, main, update, view)
 
 import Browser
-import Html exposing (Html, button, div, h1, h2, img, input, text)
+import Html exposing (Html, button, div, h1, h2, h3, img, input, p, text)
 import Html.Attributes exposing (placeholder, src, value)
 import Html.Events exposing (onClick, onInput)
 import Json.Decode
@@ -195,6 +195,15 @@ view model =
 
             Maybe.Nothing ->
                 div [] []
+        , div []
+            [ h3 []
+                [ text "Previous messages"
+                , div [] <|
+                    List.map
+                        (\m -> p [] [ text m ])
+                        model.messages
+                ]
+            ]
         , h2 [] [ text <| errorPrinter model.error ]
         ]
 

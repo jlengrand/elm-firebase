@@ -105,7 +105,7 @@ firebase.auth().onAuthStateChanged(user => {
 });
 
 app.ports.saveMessage.subscribe(data => {
-  console.log(`saving message ${data.content}`);
+  console.log(`saving message to database : ${data.content}`);
 
   db.collection(`users/${data.uid}/messages`)
     .add({
