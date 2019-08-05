@@ -1,9 +1,9 @@
 port module Main exposing (Model, Msg(..), init, main, update, view)
 
 import Browser
-import Html exposing (Html, button, div, h1, h2, img, text)
-import Html.Attributes exposing (src)
-import Html.Events exposing (onClick)
+import Html exposing (Html, button, div, h1, h2, h3, img, input, p, text)
+import Html.Attributes exposing (placeholder, src, value)
+import Html.Events exposing (onClick, onInput)
 import Json.Decode
 import Json.Decode.Pipeline
 import Json.Encode
@@ -21,8 +21,18 @@ port signInError : (Json.Encode.Value -> msg) -> Sub msg
 port signOut : () -> Cmd msg
 
 
+port saveMessage : Json.Encode.Value -> Cmd msg
+
+
+port receiveMessages : (Json.Encode.Value -> msg) -> Sub msg
+
+
 
 ---- MODEL ----
+
+
+type alias MessageContent =
+    { uid : String, content : String }
 
 
 type alias ErrorData =
@@ -30,16 +40,16 @@ type alias ErrorData =
 
 
 type alias UserData =
-    { token : String, email : String }
+    { token : String, email : String, uid : String }
 
 
 type alias Model =
-    { userData : Maybe UserData, error : ErrorData }
+    { userData : Maybe UserData, error : ErrorData, inputContent : String, messages : List String }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { userData = Maybe.Nothing, error = emptyError }, Cmd.none )
+    ( { userData = Maybe.Nothing, error = emptyError, inputContent = "", messages = [] }, Cmd.none )
 
 
 
@@ -51,6 +61,9 @@ type Msg
     | LogOut
     | LoggedInData (Result Json.Decode.Error UserData)
     | LoggedInError (Result Json.Decode.Error ErrorData)
+    | SaveMessage
+    | InputChanged String
+    | MessagesReceived (Result Json.Decode.Error (List String))
 
 
 emptyError : ErrorData
@@ -83,6 +96,35 @@ update msg model =
                 Err error ->
                     ( { model | error = messageToError <| Json.Decode.errorToString error }, Cmd.none )
 
+        SaveMessage ->
+            ( model, saveMessage <| messageEncoder model )
+
+        InputChanged value ->
+            ( { model | inputContent = value }, Cmd.none )
+
+        MessagesReceived result ->
+            case result of
+                Ok value ->
+                    ( { model | messages = value }, Cmd.none )
+
+                Err error ->
+                    ( { model | error = messageToError <| Json.Decode.errorToString error }, Cmd.none )
+
+
+messageEncoder : Model -> Json.Encode.Value
+messageEncoder model =
+    Json.Encode.object
+        [ ( "content", Json.Encode.string model.inputContent )
+        , ( "uid"
+          , case model.userData of
+                Just userData ->
+                    Json.Encode.string userData.uid
+
+                Maybe.Nothing ->
+                    Json.Encode.null
+          )
+        ]
+
 
 messageToError : String -> ErrorData
 messageToError message =
@@ -99,6 +141,7 @@ userDataDecoder =
     Json.Decode.succeed UserData
         |> Json.Decode.Pipeline.required "token" Json.Decode.string
         |> Json.Decode.Pipeline.required "email" Json.Decode.string
+        |> Json.Decode.Pipeline.required "uid" Json.Decode.string
 
 
 logInErrorDecoder : Json.Decode.Decoder ErrorData
@@ -107,6 +150,16 @@ logInErrorDecoder =
         |> Json.Decode.Pipeline.required "code" (Json.Decode.nullable Json.Decode.string)
         |> Json.Decode.Pipeline.required "message" (Json.Decode.nullable Json.Decode.string)
         |> Json.Decode.Pipeline.required "credential" (Json.Decode.nullable Json.Decode.string)
+
+
+messagesDecoder =
+    Json.Decode.decodeString (Json.Decode.list Json.Decode.string)
+
+
+messageListDecoder : Json.Decode.Decoder (List String)
+messageListDecoder =
+    Json.Decode.succeed identity
+        |> Json.Decode.Pipeline.required "messages" (Json.Decode.list Json.Decode.string)
 
 
 
@@ -128,10 +181,28 @@ view model =
             [ text <|
                 case model.userData of
                     Just data ->
-                        data.email ++ " " ++ data.token
+                        data.email ++ " " ++ data.uid ++ " " ++ data.token
 
                     Maybe.Nothing ->
                         ""
+            ]
+        , case model.userData of
+            Just data ->
+                div []
+                    [ input [ placeholder "Message to save", value model.inputContent, onInput InputChanged ] []
+                    , button [ onClick SaveMessage ] [ text "Save new message" ]
+                    ]
+
+            Maybe.Nothing ->
+                div [] []
+        , div []
+            [ h3 []
+                [ text "Previous messages"
+                , div [] <|
+                    List.map
+                        (\m -> p [] [ text m ])
+                        model.messages
+                ]
             ]
         , h2 [] [ text <| errorPrinter model.error ]
         ]
@@ -146,6 +217,7 @@ subscriptions model =
     Sub.batch
         [ signInInfo (Json.Decode.decodeValue userDataDecoder >> LoggedInData)
         , signInError (Json.Decode.decodeValue logInErrorDecoder >> LoggedInError)
+        , receiveMessages (Json.Decode.decodeValue messageListDecoder >> MessagesReceived)
         ]
 
 
