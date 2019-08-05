@@ -22,29 +22,32 @@ firebase.initializeApp(firebaseConfig);
 
 const provider = new firebase.auth.GoogleAuthProvider();
 
-let counter = 1;
-
 const app = Elm.Main.init({
   node: document.getElementById("root")
 });
 
 app.ports.signIn.subscribe(() => {
   console.log("LogIn called");
-
   firebase
     .auth()
     .signInWithPopup(provider)
     .then(result => {
-      app.ports.signInInfo.send({
-        token: result.credential.accessToken,
-        email: result.user.email
-      });
+      result.user
+        .getIdToken()
+        .then(idToken => {
+          app.ports.signInInfo.send({
+            token: idToken,
+            email: result.user.email
+          });
+        })
+        .catch(error => {
+          console.log(error);
+        });
     })
     .catch(error => {
       app.ports.signInError.send({
         code: error.code,
-        message: error.message,
-        credential: error.credential
+        message: error.message
       });
     });
 });
@@ -60,6 +63,24 @@ app.ports.signOut.subscribe(() => {
     .catch(error => {
       // An error happened.
     });
+});
+
+//  Observer on user info
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    user
+      .getIdToken()
+      .then(idToken => {
+        app.ports.signInInfo.send({
+          token: idToken,
+          email: user.email
+        });
+      })
+      .catch(error => {
+        console.log("Error when retrieving cached user");
+        console.log(error);
+      });
+  }
 });
 
 registerServiceWorker();
