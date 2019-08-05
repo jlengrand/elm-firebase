@@ -118,8 +118,12 @@ view model =
     div []
         [ img [ src "/logo.svg" ] []
         , h1 [] [ text "Your Elm App is working!" ]
-        , button [ onClick LogIn ] [ text "Login with Google" ]
-        , button [ onClick LogOut ] [ text "Logout from Google" ]
+        , case model.userData of
+            Just data ->
+                button [ onClick LogOut ] [ text "Logout from Google" ]
+
+            Maybe.Nothing ->
+                button [ onClick LogIn ] [ text "Login with Google" ]
         , h2 [] [ text <| errorPrinter model.error ]
         , h2 []
             [ text <|
@@ -139,7 +143,6 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    -- always Sub.none
     Sub.batch
         [ signInInfo (Json.Decode.decodeValue userDataDecoder >> LoggedInData)
         , signInError (Json.Decode.decodeValue logInErrorDecoder >> LoggedInError)
