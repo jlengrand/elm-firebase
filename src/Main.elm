@@ -124,7 +124,6 @@ view model =
 
             Maybe.Nothing ->
                 button [ onClick LogIn ] [ text "Login with Google" ]
-        , h2 [] [ text <| errorPrinter model.error ]
         , h2 []
             [ text <|
                 case model.userData of
@@ -134,6 +133,7 @@ view model =
                     Maybe.Nothing ->
                         ""
             ]
+        , h2 [] [ text <| errorPrinter model.error ]
         ]
 
 
