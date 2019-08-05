@@ -28,22 +28,6 @@ const app = Elm.Main.init({
   node: document.getElementById("root")
 });
 
-app.ports.saveMessage.subscribe(data => {
-  console.log("saveMessage called");
-  console.log(data);
-
-  db.collection(`users/${data.uid}/messages`)
-    .add({
-      content: data.content
-    })
-    .then(docRef => {
-      console.log("Document written with ID: ", docRef.id);
-    })
-    .catch(error => {
-      console.error("Error adding document: ", error);
-    });
-});
-
 app.ports.signIn.subscribe(() => {
   console.log("LogIn called");
   firebase
@@ -87,7 +71,6 @@ app.ports.signOut.subscribe(() => {
 //  Observer on user info
 firebase.auth().onAuthStateChanged(user => {
   if (user) {
-    currentUser = user;
     user
       .getIdToken()
       .then(idToken => {
@@ -102,6 +85,22 @@ firebase.auth().onAuthStateChanged(user => {
         console.log(error);
       });
   }
+});
+
+app.ports.saveMessage.subscribe(data => {
+  console.log("saveMessage called");
+  console.log(data);
+
+  db.collection(`users/${data.uid}/messages`)
+    .add({
+      content: data.content
+    })
+    .then(docRef => {
+      console.log("Document written with ID: ", docRef.id);
+    })
+    .catch(error => {
+      console.error("Error adding document: ", error);
+    });
 });
 
 registerServiceWorker();
