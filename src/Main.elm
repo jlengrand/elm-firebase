@@ -1,9 +1,9 @@
 port module Main exposing (Model, Msg(..), init, main, update, view)
 
 import Browser
-import Html exposing (Html, button, div, h1, h2, img, text)
-import Html.Attributes exposing (src)
-import Html.Events exposing (onClick)
+import Html exposing (Html, button, div, h1, h2, img, input, text)
+import Html.Attributes exposing (placeholder, src, value)
+import Html.Events exposing (onClick, onInput)
 import Json.Decode
 import Json.Decode.Pipeline
 import Json.Encode
@@ -41,12 +41,12 @@ type alias UserData =
 
 
 type alias Model =
-    { userData : Maybe UserData, error : ErrorData }
+    { userData : Maybe UserData, error : ErrorData, inputContent : String }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { userData = Maybe.Nothing, error = emptyError }, Cmd.none )
+    ( { userData = Maybe.Nothing, error = emptyError, inputContent = "" }, Cmd.none )
 
 
 
@@ -59,6 +59,7 @@ type Msg
     | LoggedInData (Result Json.Decode.Error UserData)
     | LoggedInError (Result Json.Decode.Error ErrorData)
     | SaveMessage
+    | InputChanged String
 
 
 emptyError : ErrorData
@@ -92,13 +93,16 @@ update msg model =
                     ( { model | error = messageToError <| Json.Decode.errorToString error }, Cmd.none )
 
         SaveMessage ->
-            ( model, saveMessage <| messageEncoder model "test" )
+            ( model, saveMessage <| messageEncoder model )
+
+        InputChanged value ->
+            ( { model | inputContent = value }, Cmd.none )
 
 
-messageEncoder : Model -> String -> Json.Encode.Value
-messageEncoder model content =
+messageEncoder : Model -> Json.Encode.Value
+messageEncoder model =
     Json.Encode.object
-        [ ( "content", Json.Encode.string content )
+        [ ( "content", Json.Encode.string model.inputContent )
         , ( "uid"
           , case model.userData of
                 Just userData ->
@@ -162,7 +166,10 @@ view model =
             ]
         , case model.userData of
             Just data ->
-                div [] [ button [ onClick SaveMessage ] [ text "Save new message" ] ]
+                div []
+                    [ input [ placeholder "Message to save", value model.inputContent, onInput InputChanged ] []
+                    , button [ onClick SaveMessage ] [ text "Save new message" ]
+                    ]
 
             Maybe.Nothing ->
                 div [] []
