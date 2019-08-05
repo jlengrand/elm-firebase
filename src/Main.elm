@@ -39,7 +39,7 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { userData = Maybe.Nothing, error = { code = Maybe.Nothing, message = Maybe.Nothing, credential = Maybe.Nothing } }, Cmd.none )
+    ( { userData = Maybe.Nothing, error = emptyError }, Cmd.none )
 
 
 
@@ -142,7 +142,7 @@ subscriptions model =
     -- always Sub.none
     Sub.batch
         [ signInInfo (Json.Decode.decodeValue userDataDecoder >> LoggedInData)
-        , signInInfo (Json.Decode.decodeValue logInErrorDecoder >> LoggedInError)
+        , signInError (Json.Decode.decodeValue logInErrorDecoder >> LoggedInError)
         ]
 
 
