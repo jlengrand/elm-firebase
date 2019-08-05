@@ -24,6 +24,9 @@ port signOut : () -> Cmd msg
 port saveMessage : Json.Encode.Value -> Cmd msg
 
 
+port receiveMessages : (Json.Encode.Value -> msg) -> Sub msg
+
+
 
 ---- MODEL ----
 
@@ -41,12 +44,12 @@ type alias UserData =
 
 
 type alias Model =
-    { userData : Maybe UserData, error : ErrorData, inputContent : String }
+    { userData : Maybe UserData, error : ErrorData, inputContent : String, messages : List String }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { userData = Maybe.Nothing, error = emptyError, inputContent = "" }, Cmd.none )
+    ( { userData = Maybe.Nothing, error = emptyError, inputContent = "", messages = [] }, Cmd.none )
 
 
 
@@ -60,6 +63,7 @@ type Msg
     | LoggedInError (Result Json.Decode.Error ErrorData)
     | SaveMessage
     | InputChanged String
+    | MessagesReceived (Result Json.Decode.Error (List String))
 
 
 emptyError : ErrorData
@@ -97,6 +101,14 @@ update msg model =
 
         InputChanged value ->
             ( { model | inputContent = value }, Cmd.none )
+
+        MessagesReceived result ->
+            case result of
+                Ok value ->
+                    ( { model | messages = value }, Cmd.none )
+
+                Err error ->
+                    ( { model | error = messageToError <| Json.Decode.errorToString error }, Cmd.none )
 
 
 messageEncoder : Model -> Json.Encode.Value
@@ -138,6 +150,16 @@ logInErrorDecoder =
         |> Json.Decode.Pipeline.required "code" (Json.Decode.nullable Json.Decode.string)
         |> Json.Decode.Pipeline.required "message" (Json.Decode.nullable Json.Decode.string)
         |> Json.Decode.Pipeline.required "credential" (Json.Decode.nullable Json.Decode.string)
+
+
+messagesDecoder =
+    Json.Decode.decodeString (Json.Decode.list Json.Decode.string)
+
+
+messageListDecoder : Json.Decode.Decoder (List String)
+messageListDecoder =
+    Json.Decode.succeed identity
+        |> Json.Decode.Pipeline.required "messages" (Json.Decode.list Json.Decode.string)
 
 
 
@@ -186,6 +208,7 @@ subscriptions model =
     Sub.batch
         [ signInInfo (Json.Decode.decodeValue userDataDecoder >> LoggedInData)
         , signInError (Json.Decode.decodeValue logInErrorDecoder >> LoggedInError)
+        , receiveMessages (Json.Decode.decodeValue messageListDecoder >> MessagesReceived)
         ]
 
 

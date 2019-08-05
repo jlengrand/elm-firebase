@@ -70,6 +70,7 @@ app.ports.signOut.subscribe(() => {
 
 //  Observer on user info
 firebase.auth().onAuthStateChanged(user => {
+  console.log("called");
   if (user) {
     user
       .getIdToken()
@@ -84,6 +85,22 @@ firebase.auth().onAuthStateChanged(user => {
         console.log("Error when retrieving cached user");
         console.log(error);
       });
+
+    // Set up listened on new messages
+    db.collection(`users/${user.uid}/messages`).onSnapshot(docs => {
+      console.log("Received new snapshot");
+      const messages = [];
+
+      docs.forEach(doc => {
+        if (doc.data().content) {
+          messages.push(doc.data().content);
+        }
+      });
+
+      app.ports.receiveMessages.send({
+        messages: messages
+      });
+    });
   }
 });
 
