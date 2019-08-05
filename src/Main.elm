@@ -21,6 +21,9 @@ port signInError : (Json.Encode.Value -> msg) -> Sub msg
 port signOut : () -> Cmd msg
 
 
+port saveMessage : () -> Cmd msg
+
+
 
 ---- MODEL ----
 
@@ -30,7 +33,7 @@ type alias ErrorData =
 
 
 type alias UserData =
-    { token : String, email : String }
+    { token : String, email : String, uid : String }
 
 
 type alias Model =
@@ -51,6 +54,7 @@ type Msg
     | LogOut
     | LoggedInData (Result Json.Decode.Error UserData)
     | LoggedInError (Result Json.Decode.Error ErrorData)
+    | SaveMessage
 
 
 emptyError : ErrorData
@@ -83,6 +87,9 @@ update msg model =
                 Err error ->
                     ( { model | error = messageToError <| Json.Decode.errorToString error }, Cmd.none )
 
+        SaveMessage ->
+            ( model, saveMessage () )
+
 
 messageToError : String -> ErrorData
 messageToError message =
@@ -99,6 +106,7 @@ userDataDecoder =
     Json.Decode.succeed UserData
         |> Json.Decode.Pipeline.required "token" Json.Decode.string
         |> Json.Decode.Pipeline.required "email" Json.Decode.string
+        |> Json.Decode.Pipeline.required "uid" Json.Decode.string
 
 
 logInErrorDecoder : Json.Decode.Decoder ErrorData
@@ -128,11 +136,17 @@ view model =
             [ text <|
                 case model.userData of
                     Just data ->
-                        data.email ++ " " ++ data.token
+                        data.email ++ " " ++ data.uid ++ " " ++ data.token
 
                     Maybe.Nothing ->
                         ""
             ]
+        , case model.userData of
+            Just data ->
+                div [] [ button [ onClick SaveMessage ] [ text "Save new message" ] ]
+
+            Maybe.Nothing ->
+                div [] []
         , h2 [] [ text <| errorPrinter model.error ]
         ]
 

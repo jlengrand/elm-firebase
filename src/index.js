@@ -1,6 +1,7 @@
 import "./main.css";
 import * as firebase from "firebase/app";
 import "firebase/auth";
+import "firebase/firestore";
 
 import { Elm } from "./Main.elm";
 import registerServiceWorker from "./registerServiceWorker";
@@ -21,9 +22,25 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 const provider = new firebase.auth.GoogleAuthProvider();
+const db = firebase.firestore();
+let currentUser;
 
 const app = Elm.Main.init({
   node: document.getElementById("root")
+});
+
+app.ports.saveMessage.subscribe(() => {
+  console.log("saveMessage called");
+  db.collection(`users/${currentUser.uid}/messages`)
+    .add({
+      data: "test"
+    })
+    .then(function(docRef) {
+      console.log("Document written with ID: ", docRef.id);
+    })
+    .catch(function(error) {
+      console.error("Error adding document: ", error);
+    });
 });
 
 app.ports.signIn.subscribe(() => {
@@ -37,7 +54,8 @@ app.ports.signIn.subscribe(() => {
         .then(idToken => {
           app.ports.signInInfo.send({
             token: idToken,
-            email: result.user.email
+            email: result.user.email,
+            uid: result.user.uid
           });
         })
         .catch(error => {
@@ -68,12 +86,14 @@ app.ports.signOut.subscribe(() => {
 //  Observer on user info
 firebase.auth().onAuthStateChanged(user => {
   if (user) {
+    currentUser = user;
     user
       .getIdToken()
       .then(idToken => {
         app.ports.signInInfo.send({
           token: idToken,
-          email: user.email
+          email: user.email,
+          uid: user.uid
         });
       })
       .catch(error => {
