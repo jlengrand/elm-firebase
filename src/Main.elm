@@ -21,11 +21,15 @@ port signInError : (Json.Encode.Value -> msg) -> Sub msg
 port signOut : () -> Cmd msg
 
 
-port saveMessage : () -> Cmd msg
+port saveMessage : Json.Encode.Value -> Cmd msg
 
 
 
 ---- MODEL ----
+
+
+type alias MessageContent =
+    { uid : String, content : String }
 
 
 type alias ErrorData =
@@ -88,7 +92,22 @@ update msg model =
                     ( { model | error = messageToError <| Json.Decode.errorToString error }, Cmd.none )
 
         SaveMessage ->
-            ( model, saveMessage () )
+            ( model, saveMessage <| messageEncoder model "test" )
+
+
+messageEncoder : Model -> String -> Json.Encode.Value
+messageEncoder model content =
+    Json.Encode.object
+        [ ( "content", Json.Encode.string content )
+        , ( "uid"
+          , case model.userData of
+                Just userData ->
+                    Json.Encode.string userData.uid
+
+                Maybe.Nothing ->
+                    Json.Encode.null
+          )
+        ]
 
 
 messageToError : String -> ErrorData

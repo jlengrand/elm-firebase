@@ -23,22 +23,23 @@ firebase.initializeApp(firebaseConfig);
 
 const provider = new firebase.auth.GoogleAuthProvider();
 const db = firebase.firestore();
-let currentUser;
 
 const app = Elm.Main.init({
   node: document.getElementById("root")
 });
 
-app.ports.saveMessage.subscribe(() => {
+app.ports.saveMessage.subscribe(data => {
   console.log("saveMessage called");
-  db.collection(`users/${currentUser.uid}/messages`)
+  console.log(data);
+
+  db.collection(`users/${data.uid}/messages`)
     .add({
-      data: "test"
+      content: data.content
     })
-    .then(function(docRef) {
+    .then(docRef => {
       console.log("Document written with ID: ", docRef.id);
     })
-    .catch(function(error) {
+    .catch(error => {
       console.error("Error adding document: ", error);
     });
 });
