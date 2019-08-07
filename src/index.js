@@ -34,18 +34,13 @@ app.ports.signIn.subscribe(() => {
     .auth()
     .signInWithPopup(provider)
     .then(result => {
-      result.user
-        .getIdToken()
-        .then(idToken => {
-          app.ports.signInInfo.send({
-            token: idToken,
-            email: result.user.email,
-            uid: result.user.uid
-          });
-        })
-        .catch(error => {
-          console.log(error);
+      result.user.getIdToken().then(idToken => {
+        app.ports.signInInfo.send({
+          token: idToken,
+          email: result.user.email,
+          uid: result.user.uid
         });
+      });
     })
     .catch(error => {
       app.ports.signInError.send({
@@ -57,15 +52,7 @@ app.ports.signIn.subscribe(() => {
 
 app.ports.signOut.subscribe(() => {
   console.log("LogOut called");
-  firebase
-    .auth()
-    .signOut()
-    .then(() => {
-      // Sign-out successful.
-    })
-    .catch(error => {
-      // An error happened.
-    });
+  firebase.auth().signOut();
 });
 
 //  Observer on user info
@@ -111,11 +98,11 @@ app.ports.saveMessage.subscribe(data => {
     .add({
       content: data.content
     })
-    .then(docRef => {
-      console.log("Document written with ID: ", docRef.id);
-    })
     .catch(error => {
-      console.error("Error adding document: ", error);
+      app.ports.signInError.send({
+        code: error.code,
+        message: error.message
+      });
     });
 });
 
