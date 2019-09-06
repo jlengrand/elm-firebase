@@ -1,8 +1,8 @@
 port module Main exposing (Model, Msg(..), init, main, update, view)
 
 import Browser
-import Html exposing (Html, button, div, h1, h2, h3, img, input, p, text)
-import Html.Attributes exposing (placeholder, src, value)
+import Html exposing (Html, article, button, div, footer, h1, h2, h3, header, img, input, main_, p, text)
+import Html.Attributes exposing (class, placeholder, src, value)
 import Html.Events exposing (onClick, onInput)
 import Json.Decode
 import Json.Decode.Pipeline
@@ -168,43 +168,57 @@ messageListDecoder =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ img [ src "/logo.svg" ] []
-        , h1 [] [ text "Your Elm App is working!" ]
-        , case model.userData of
-            Just data ->
-                button [ onClick LogOut ] [ text "Logout from Google" ]
-
-            Maybe.Nothing ->
-                button [ onClick LogIn ] [ text "Login with Google" ]
-        , h2 []
-            [ text <|
+    main_ []
+        [ header [ class "header" ]
+            [ img [ src "/logo.svg" ] []
+            , text "Elm Firebase"
+            , div [ class "log" ] <|
                 case model.userData of
                     Just data ->
-                        data.email ++ " " ++ data.uid ++ " " ++ data.token
+                        [ text <|
+                            "Welcome "
+                                ++ data.email
+                        , text <|
+                            "Your unique id is "
+                                ++ data.uid
+                        , button [ onClick LogOut ] [ text "Logout from Google" ]
+                        ]
 
                     Maybe.Nothing ->
-                        ""
+                        [ button [ onClick LogIn ] [ text "Login with Google" ] ]
             ]
-        , case model.userData of
-            Just data ->
-                div []
-                    [ input [ placeholder "Message to save", value model.inputContent, onInput InputChanged ] []
-                    , button [ onClick SaveMessage ] [ text "Save new message" ]
-                    ]
+        , article []
+            [ h1 [] [ text "Your Elm App is working!" ]
+            , p []
+                [ text <|
+                    case model.userData of
+                        Just data ->
+                            data.token
 
-            Maybe.Nothing ->
-                div [] []
-        , div []
-            [ h3 []
-                [ text "Previous messages"
-                , div [] <|
-                    List.map
-                        (\m -> p [] [ text m ])
-                        model.messages
+                        Maybe.Nothing ->
+                            ""
                 ]
+            , case model.userData of
+                Just data ->
+                    div []
+                        [ input [ placeholder "Message to save", value model.inputContent, onInput InputChanged ] []
+                        , button [ onClick SaveMessage ] [ text "Save new message" ]
+                        ]
+
+                Maybe.Nothing ->
+                    div [] []
+            , div []
+                [ h3 []
+                    [ text "Previous messages"
+                    , div [] <|
+                        List.map
+                            (\m -> p [] [ text m ])
+                            model.messages
+                    ]
+                ]
+            , h2 [] [ text <| errorPrinter model.error ]
             ]
-        , h2 [] [ text <| errorPrinter model.error ]
+        , footer [ class "footer" ] [ text "The footer" ]
         ]
 
 

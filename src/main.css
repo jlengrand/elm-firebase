@@ -1,8 +1,18 @@
 body {
-  font-family: 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
-  margin: 0;
-  text-align: center;
+  font-family: "Source Sans Pro", "Trebuchet MS", "Lucida Grande",
+    "Bitstream Vera Sans", "Helvetica Neue", sans-serif;
+  /* margin: 20; */
+  /* text-align: center; */
   color: #293c4b;
+  background-color: #ccc;
+}
+
+main {
+  min-height: 100%;
+  margin: 0 20px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: 100%;
 }
 
 h1 {
@@ -11,5 +21,23 @@ h1 {
 
 img {
   margin: 20px 0;
-  max-width: 200px;
+  max-width: 20px;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0 0 1em 0;
+}
+
+.log {
+  float: right;
+}
+
+@supports (display: grid) {
+  .wrapper > * {
+    width: auto;
+    margin: 0;
+  }
 }
