@@ -76,6 +76,6 @@ Contributions are more than welcome ! You can [pick one of the issues of the lis
 
 ## Authors
 
-Julien Lengrand-Lambert <julien@lengrand.fr>
+* [Julien Lengrand-Lambert](https://twitter.com/jlengrand)
 
 Happy hacking!
