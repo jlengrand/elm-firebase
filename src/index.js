@@ -1,7 +1,7 @@
 import "./main.css";
 import * as firebase from "firebase/app";
-import "firebase/auth";
-import "firebase/firestore";
+import "firebase/firebase-auth";
+import "firebase/firebase-firestore";
 
 import { Elm } from "./Main.elm";
 import registerServiceWorker from "./registerServiceWorker";
