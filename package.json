@@ -7,11 +7,11 @@
     "test": "tests"
   },
   "dependencies": {
-    "firebase": "^7.8.1",
+    "firebase": "^7.21.1",
     "firebase-app": "0.0.1"
   },
   "devDependencies": {
-    "create-elm-app": "^4.2.26"
+    "create-elm-app": "^4.2.27"
   },
   "scripts": {
     "build": "elm-app build",
