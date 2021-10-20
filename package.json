@@ -11,11 +11,15 @@
     "firebase-app": "0.0.1"
   },
   "devDependencies": {
-    "create-elm-app": "^5.22.0"
+    "@parcel/packager-raw-url": "^2.0.0",
+    "@parcel/transformer-elm": "^2.0.0",
+    "@parcel/transformer-webmanifest": "^2.0.0",
+    "elm": "^0.19.1-5",
+    "parcel": "^2.0.0"
   },
   "scripts": {
-    "build": "elm-app build",
-    "start": "elm-app start"
+    "build": "parcel build/index.html --dist-dir build",
+    "start": "parcel public/index.html"
   },
   "keywords": [
     "elm",
