@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, signOut, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
+import { query, getFirestore, collection, addDoc, onSnapshot } from "firebase/firestore"; 
 
 import { Elm } from "./Main.elm";
 import registerServiceWorker from "./registerServiceWorker";
@@ -21,7 +22,7 @@ const firebaseApp = initializeApp(firebaseConfig);
 
 const provider = new GoogleAuthProvider();
 const auth = getAuth();
-// const db = firebase.firestore();
+const db = getFirestore();
 
 const app = Elm.Main.init({
   node: document.getElementById("root")
@@ -71,36 +72,35 @@ onAuthStateChanged(auth, user => {
       });
 
     // Set up listened on new messages
-    // db.collection(`users/${user.uid}/messages`).onSnapshot(docs => {
-    //   console.log("Received new snapshot");
-    //   const messages = [];
+    const q = query(collection(db, `users/${user.uid}/messages`));
+    onSnapshot(q, querySnapshot => {
+      console.log("Received new snapshot");
+      const messages = [];
 
-    //   docs.forEach(doc => {
-    //     if (doc.data().content) {
-    //       messages.push(doc.data().content);
-    //     }
-    //   });
+      querySnapshot.forEach(doc => {
+        if (doc.data().content) {
+          messages.push(doc.data().content);
+        }
+      });
 
-    //   app.ports.receiveMessages.send({
-    //     messages: messages
-    //   });
-    // });
+      app.ports.receiveMessages.send({
+        messages: messages
+      });
+    });
   }
 });
 
 app.ports.saveMessage.subscribe(data => {
   console.log(`saving message to database : ${data.content}`);
 
-  // db.collection(`users/${data.uid}/messages`)
-  //   .add({
-  //     content: data.content
-  //   })
-  //   .catch(error => {
-  //     app.ports.signInError.send({
-  //       code: error.code,
-  //       message: error.message
-  //     });
-  //   });
+  addDoc(collection(db, `users/${data.uid}/messages`), {
+    content: data.content
+  }).catch(error => {
+      app.ports.signInError.send({
+        code: error.code,
+        message: error.message
+      });
+    });
 });
 
 registerServiceWorker();

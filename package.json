@@ -2,7 +2,6 @@
   "name": "elm-firebase",
   "version": "1.0.1",
   "description": "A simple repository to show Elm integration with Firebase using ports",
-  "main": "src/index.js",
   "directories": {
     "test": "tests"
   },
@@ -17,7 +16,7 @@
     "parcel": "^2.0.0"
   },
   "scripts": {
-    "build": "parcel build/index.html --dist-dir build",
+    "build": "parcel build public/index.html --dist-dir build",
     "start": "parcel public/index.html"
   },
   "keywords": [
