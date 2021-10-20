@@ -1,4 +1,3 @@
-import "./main.css";
 import * as firebase from "firebase/app";
 import "firebase/firebase-auth";
 import "firebase/firebase-firestore";
