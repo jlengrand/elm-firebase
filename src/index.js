@@ -1,6 +1,5 @@
-import * as firebase from "firebase/app";
-import "firebase/firebase-auth";
-import "firebase/firebase-firestore";
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInWithPopup, signOut, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
 
 import { Elm } from "./Main.elm";
 import registerServiceWorker from "./registerServiceWorker";
@@ -18,10 +17,11 @@ const firebaseConfig = {
   appId: process.env.ELM_APP_APP_ID
 };
 
-firebase.initializeApp(firebaseConfig);
+const firebaseApp = initializeApp(firebaseConfig);
 
-const provider = new firebase.auth.GoogleAuthProvider();
-const db = firebase.firestore();
+const provider = new GoogleAuthProvider();
+const auth = getAuth();
+// const db = firebase.firestore();
 
 const app = Elm.Main.init({
   node: document.getElementById("root")
@@ -29,9 +29,7 @@ const app = Elm.Main.init({
 
 app.ports.signIn.subscribe(() => {
   console.log("LogIn called");
-  firebase
-    .auth()
-    .signInWithPopup(provider)
+  signInWithPopup(auth, provider)
     .then(result => {
       result.user.getIdToken().then(idToken => {
         app.ports.signInInfo.send({
@@ -51,11 +49,11 @@ app.ports.signIn.subscribe(() => {
 
 app.ports.signOut.subscribe(() => {
   console.log("LogOut called");
-  firebase.auth().signOut();
+  signOut(auth);
 });
 
 //  Observer on user info
-firebase.auth().onAuthStateChanged(user => {
+onAuthStateChanged(auth, user => {
   console.log("called");
   if (user) {
     user
@@ -73,36 +71,36 @@ firebase.auth().onAuthStateChanged(user => {
       });
 
     // Set up listened on new messages
-    db.collection(`users/${user.uid}/messages`).onSnapshot(docs => {
-      console.log("Received new snapshot");
-      const messages = [];
+    // db.collection(`users/${user.uid}/messages`).onSnapshot(docs => {
+    //   console.log("Received new snapshot");
+    //   const messages = [];
 
-      docs.forEach(doc => {
-        if (doc.data().content) {
-          messages.push(doc.data().content);
-        }
-      });
+    //   docs.forEach(doc => {
+    //     if (doc.data().content) {
+    //       messages.push(doc.data().content);
+    //     }
+    //   });
 
-      app.ports.receiveMessages.send({
-        messages: messages
-      });
-    });
+    //   app.ports.receiveMessages.send({
+    //     messages: messages
+    //   });
+    // });
   }
 });
 
 app.ports.saveMessage.subscribe(data => {
   console.log(`saving message to database : ${data.content}`);
 
-  db.collection(`users/${data.uid}/messages`)
-    .add({
-      content: data.content
-    })
-    .catch(error => {
-      app.ports.signInError.send({
-        code: error.code,
-        message: error.message
-      });
-    });
+  // db.collection(`users/${data.uid}/messages`)
+  //   .add({
+  //     content: data.content
+  //   })
+  //   .catch(error => {
+  //     app.ports.signInError.send({
+  //       code: error.code,
+  //       message: error.message
+  //     });
+  //   });
 });
 
 registerServiceWorker();
