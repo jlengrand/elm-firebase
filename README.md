@@ -1,5 +1,10 @@
 # Elm Firebase
 
+ <a href="https://trackgit.com">
+<img src="https://us-central1-trackgit-analytics.cloudfunctions.net/token/ping/litfwbveqpoqgp5reoil" alt="trackgit-views" />
+</a>
+
+
 A simple repository to show Elm integration with Firebase using ports. You can read more about it in my [short blog post introducing it](https://lengrand.fr/using-firebase-in-elm/).
 
 You can demo the app **[here](https://elm-firebase.netlify.com/)**.
@@ -79,7 +84,3 @@ Contributions are more than welcome ! You can [pick one of the issues of the lis
 * [Julien Lengrand-Lambert](https://twitter.com/jlengrand)
 
 Happy hacking!
-
- <a href="https://trackgit.com">
-<img src="https://us-central1-trackgit-analytics.cloudfunctions.net/token/ping/litfwbveqpoqgp5reoil" alt="trackgit-views" />
-</a>
